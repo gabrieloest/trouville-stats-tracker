@@ -1,0 +1,25 @@
+{
+  "name": "Trouville Stats Tracker",
+  "short_name": "Trouville Stats",
+  "description": "Marcador de estatísticas individuais de basquete por período com exportação para WhatsApp.",
+  "start_url": "/trouville-stats-tracker/",
+  "scope": "/trouville-stats-tracker/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#faf6f6",
+  "theme_color": "#D22D27",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='42' fill='%23D22D27'/%3E%3Ccircle cx='96' cy='96' r='62' fill='%23DD5748' stroke='%23ffffff' stroke-width='8'/%3E%3Cpath d='M34 96h124M96 34v124M52 52c25 25 25 63 0 88M140 52c-25 25-25 63 0 88' fill='none' stroke='%23ffffff' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%23D22D27'/%3E%3Ccircle cx='256' cy='256' r='165' fill='%23DD5748' stroke='%23ffffff' stroke-width='20'/%3E%3Cpath d='M91 256h330M256 91v330M140 140c65 65 65 167 0 232M372 140c-65 65-65 167 0 232' fill='none' stroke='%23ffffff' stroke-width='18' stroke-linecap='round'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
