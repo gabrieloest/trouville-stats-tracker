@@ -149,7 +149,7 @@ async function pullFromCloud() {
     }
 
     state = { ...getDefaultState(), ...result.payload };
-    updatePreview();
+    updateSummaryView();
 
     const timeStr = new Date(result.updatedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     if (bannerTime) bannerTime.innerText = `Atualizado ${timeStr}`;
@@ -219,7 +219,35 @@ function updateSyncUI() {
   }
 }
 
-// --- Renderização ---
+// --- Cálculo e Renderização ---
+function getMatchHeader() {
+  const opponent = state.opponent.trim() || 'Adversário';
+  return state.location === 'home'
+    ? `Trouville x ${opponent}`
+    : `${opponent} x Trouville`;
+}
+
+function getSummaryData() {
+  const activeQuarters = Object.keys(state.playedQuarters).filter(q => state.playedQuarters[q]);
+  const totals = { pts: 0, rb: 0, ass: 0, roubos: 0, tocos: 0 };
+
+  const rows = activeQuarters.map(q => {
+    const data = state.stats[q];
+    totals.pts += data.pts;
+    totals.rb += data.rb;
+    totals.ass += data.ass;
+    totals.roubos += data.roubos;
+    totals.tocos += data.tocos;
+    return { quarter: q, ...data };
+  });
+
+  return {
+    header: getMatchHeader(),
+    rows,
+    totals
+  };
+}
+
 function syncUIWithState() {
   document.getElementById('opponent').value = state.opponent;
   document.getElementById('location').value = state.location;
@@ -234,7 +262,7 @@ function syncUIWithState() {
 
   renderTabs();
   renderCurrentQuarterStats();
-  updatePreview();
+  updateSummaryView();
 }
 
 function renderTabs() {
@@ -277,31 +305,73 @@ function renderCurrentQuarterStats() {
   }
 }
 
-function generateText() {
-  const opponent = state.opponent.trim() || 'Adversário';
-  const isHome = state.location === 'home';
+function updateSummaryView() {
+  const { header, rows, totals } = getSummaryData();
+  document.getElementById('summary-match-title').innerText = header;
 
-  const header = isHome ? `Trouville x ${opponent}` : `${opponent} x Trouville`;
+  const wrapper = document.getElementById('summary-table-wrapper');
+  wrapper.innerHTML = '';
+
+  if (rows.length === 0) {
+    const empty = document.createElement('p');
+    empty.className = 'boxscore-empty';
+    empty.innerText = 'Nenhum tempo jogado selecionado.';
+    wrapper.appendChild(empty);
+    return;
+  }
+
+  const table = document.createElement('table');
+  table.className = 'boxscore-table';
+
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>Período</th>
+        <th>PTS</th>
+        <th>REB</th>
+        <th>ASS</th>
+        <th>ROU</th>
+        <th>TOC</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows.map(r => `
+        <tr>
+          <td>Jogo ${r.quarter}</td>
+          <td class="col-pts">${r.pts}</td>
+          <td>${r.rb}</td>
+          <td>${r.ass}</td>
+          <td>${r.roubos}</td>
+          <td>${r.tocos}</td>
+        </tr>
+      `).join('')}
+    </tbody>
+    <tfoot>
+      <tr>
+        <td>TOTAL</td>
+        <td>${totals.pts}</td>
+        <td>${totals.rb}</td>
+        <td>${totals.ass}</td>
+        <td>${totals.roubos}</td>
+        <td>${totals.tocos}</td>
+      </tr>
+    </tfoot>
+  `;
+
+  wrapper.appendChild(table);
+}
+
+function generateWhatsAppText() {
+  const { header, rows, totals } = getSummaryData();
   let text = `${header}\n`;
 
-  const activeQuarters = Object.keys(state.playedQuarters).filter(q => state.playedQuarters[q]);
-
-  if (activeQuarters.length === 0) {
+  if (rows.length === 0) {
     return `${header}\n(Nenhum tempo jogado selecionado)`;
   }
 
-  const totals = { pts: 0, rb: 0, ass: 0, roubos: 0, tocos: 0 };
-
-  activeQuarters.forEach(q => {
-    const data = state.stats[q];
-    totals.pts += data.pts;
-    totals.rb += data.rb;
-    totals.ass += data.ass;
-    totals.roubos += data.roubos;
-    totals.tocos += data.tocos;
-
-    text += `- Jogo ${q}\n`;
-    text += ` ${data.pts} pts, ${data.rb} Rb, ${data.ass} ass, ${data.roubos} roubos, ${data.tocos} tocos\n`;
+  rows.forEach(r => {
+    text += `- Jogo ${r.quarter}\n`;
+    text += ` ${r.pts} pts, ${r.rb} Rb, ${r.ass} ass, ${r.roubos} roubos, ${r.tocos} tocos\n`;
   });
 
   text += `\n- Total\n`;
@@ -310,16 +380,12 @@ function generateText() {
   return text.trim();
 }
 
-function updatePreview() {
-  document.getElementById('preview-text').innerText = generateText();
-}
-
 // --- Ações e Eventos ---
 function handleInputChange() {
   state.opponent = document.getElementById('opponent').value;
   state.location = document.getElementById('location').value;
   saveState();
-  updatePreview();
+  updateSummaryView();
 }
 
 function toggleQuarterPlayed(q) {
@@ -340,7 +406,7 @@ function toggleQuarterPlayed(q) {
   saveState();
   renderTabs();
   renderCurrentQuarterStats();
-  updatePreview();
+  updateSummaryView();
 }
 
 function setQuarter(q) {
@@ -357,7 +423,7 @@ function changeStat(statKey, delta) {
     triggerHapticFeedback();
     saveState();
     renderCurrentQuarterStats();
-    updatePreview();
+    updateSummaryView();
   }
 }
 
@@ -386,7 +452,7 @@ function bindEvents() {
   document.getElementById('btn-reset').addEventListener('click', resetMatch);
 
   document.getElementById('btn-whatsapp').addEventListener('click', (e) => {
-    copyToClipboard(generateText(), e.currentTarget, '✅ Copiado para o WhatsApp!');
+    copyToClipboard(generateWhatsAppText(), e.currentTarget, '✅ Copiado para o WhatsApp!');
   });
 
   document.querySelectorAll('.time-checkbox-btn input[type="checkbox"]').forEach(chk => {

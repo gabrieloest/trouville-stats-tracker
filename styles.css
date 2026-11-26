@@ -367,32 +367,115 @@ select:last-child {
   color: var(--blushed-brick);
 }
 
+/* Box Score (Resumo Visual da Partida) */
+.boxscore-header {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.boxscore-badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  color: var(--blushed-brick);
+  background: rgba(234, 148, 142, 0.22);
+  padding: 3px 9px;
+  border-radius: 12px;
+  margin-bottom: 4px;
+}
+
+.boxscore-title {
+  margin: 2px 0 0 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.boxscore-wrapper {
+  margin-bottom: 14px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #f0dada;
+}
+
+.boxscore-empty {
+  text-align: center;
+  padding: 18px 12px;
+  font-size: 0.88rem;
+  color: var(--dusty-rose);
+  background: #fdfafa;
+  margin: 0;
+}
+
+.boxscore-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  text-align: center;
+}
+
+.boxscore-table thead th {
+  background-color: #fdf2f2;
+  color: var(--blushed-brick);
+  font-weight: 800;
+  font-size: 0.76rem;
+  letter-spacing: 0.4px;
+  padding: 9px 4px;
+  border-bottom: 1.5px solid #edd4d4;
+}
+
+.boxscore-table thead th:first-child {
+  text-align: left;
+  padding-left: 12px;
+}
+
+.boxscore-table tbody td {
+  padding: 9px 4px;
+  border-bottom: 1px solid #f6eaea;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.boxscore-table tbody td:first-child {
+  text-align: left;
+  padding-left: 12px;
+  font-weight: 700;
+  color: var(--blushed-brick);
+}
+
+.boxscore-table tbody td.col-pts {
+  font-weight: 800;
+  color: var(--flag-red);
+}
+
+.boxscore-table tfoot td {
+  background-color: var(--flag-red);
+  color: #ffffff;
+  font-weight: 800;
+  padding: 10px 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.boxscore-table tfoot td:first-child {
+  text-align: left;
+  padding-left: 12px;
+  letter-spacing: 0.3px;
+}
+
 .btn-whatsapp {
   width: 100%;
   background-color: var(--whatsapp);
   color: #ffffff;
-  font-size: 1.05rem;
+  font-size: 1.02rem;
   font-weight: 700;
-  padding: 14px;
+  padding: 13px;
   border: none;
   border-radius: 12px;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.28);
 }
 
 .btn-whatsapp:active {
   transform: scale(0.98);
-}
-
-.preview {
-  background: #f3faf5;
-  border-left: 4px solid var(--whatsapp);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  white-space: pre-wrap;
-  font-size: 0.9rem;
-  line-height: 1.45;
-  padding: 14px;
-  border-radius: 6px;
-  margin-top: 12px;
-  color: #1f2d24;
 }
