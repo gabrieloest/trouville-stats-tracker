@@ -2,7 +2,8 @@ const STORAGE_KEY = 'trouville_stats_v1';
 const SYNC_STORAGE_KEY = 'trouville_sync_config_v1';
 const FIREBASE_DB_URL = 'https://trouville-stats-tracker-default-rtdb.firebaseio.com';
 
-const getDefaultState = () => ({
+const getDefaultState = (preservedAthleteName = '') => ({
+  athleteName: preservedAthleteName,
   opponent: '',
   location: 'home',
   playedQuarters: { 1: true, 2: true, 3: true, 4: false, 5: false, 6: false },
@@ -95,6 +96,7 @@ function triggerHapticFeedback() {
 // --- Sincronização E2EE (Zero-Knowledge) ---
 function buildSnapshot() {
   return {
+    athleteName: state.athleteName,
     opponent: state.opponent,
     location: state.location,
     playedQuarters: state.playedQuarters,
@@ -242,6 +244,7 @@ function getSummaryData() {
   });
 
   return {
+    athleteName: (state.athleteName || '').trim(),
     header: getMatchHeader(),
     rows,
     totals
@@ -249,6 +252,7 @@ function getSummaryData() {
 }
 
 function syncUIWithState() {
+  document.getElementById('athlete-name').value = state.athleteName || '';
   document.getElementById('opponent').value = state.opponent;
   document.getElementById('location').value = state.location;
 
@@ -306,7 +310,17 @@ function renderCurrentQuarterStats() {
 }
 
 function updateSummaryView() {
-  const { header, rows, totals } = getSummaryData();
+  const { athleteName, header, rows, totals } = getSummaryData();
+  const athleteEl = document.getElementById('summary-athlete-name');
+
+  if (athleteName) {
+    athleteEl.innerText = `🏀 ${athleteName}`;
+    athleteEl.classList.remove('hidden');
+  } else {
+    athleteEl.innerText = '';
+    athleteEl.classList.add('hidden');
+  }
+
   document.getElementById('summary-match-title').innerText = header;
 
   const wrapper = document.getElementById('summary-table-wrapper');
@@ -362,11 +376,12 @@ function updateSummaryView() {
 }
 
 function generateWhatsAppText() {
-  const { header, rows, totals } = getSummaryData();
-  let text = `${header}\n`;
+  const { athleteName, header, rows, totals } = getSummaryData();
+  const titleLine = athleteName ? `${athleteName} — ${header}` : header;
+  let text = `${titleLine}\n`;
 
   if (rows.length === 0) {
-    return `${header}\n(Nenhum tempo jogado selecionado)`;
+    return `${titleLine}\n(Nenhum tempo jogado selecionado)`;
   }
 
   rows.forEach(r => {
@@ -382,6 +397,7 @@ function generateWhatsAppText() {
 
 // --- Ações e Eventos ---
 function handleInputChange() {
+  state.athleteName = document.getElementById('athlete-name').value;
   state.opponent = document.getElementById('opponent').value;
   state.location = document.getElementById('location').value;
   saveState();
@@ -438,8 +454,9 @@ function copyToClipboard(text, btnElement, successLabel) {
 }
 
 function resetMatch() {
-  if (confirm('Deseja zerar todas as estatísticas para iniciar uma nova partida?')) {
-    state = getDefaultState();
+  if (confirm('Deseja zerar as estatísticas da partida atual? (O nome do atleta será mantido)')) {
+    const currentAthlete = state.athleteName;
+    state = getDefaultState(currentAthlete);
     saveState();
     syncUIWithState();
   }
@@ -447,6 +464,7 @@ function resetMatch() {
 
 // --- Inicialização de Listeners ---
 function bindEvents() {
+  document.getElementById('athlete-name').addEventListener('input', handleInputChange);
   document.getElementById('opponent').addEventListener('input', handleInputChange);
   document.getElementById('location').addEventListener('change', handleInputChange);
   document.getElementById('btn-reset').addEventListener('click', resetMatch);
@@ -564,7 +582,6 @@ if ('serviceWorker' in navigator) {
 
 // --- Boot ---
 document.addEventListener('DOMContentLoaded', () => {
-  // Verifica se o app foi aberto através de um link de convite (#pair=...)
   const invite = E2EESync.consumeInviteFromHash('TRV');
   if (invite) {
     saveSyncConfig({

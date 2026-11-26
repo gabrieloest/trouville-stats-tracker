@@ -385,6 +385,13 @@ select:last-child {
   margin-bottom: 4px;
 }
 
+.boxscore-athlete {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--flag-red);
+  margin-top: 2px;
+}
+
 .boxscore-title {
   margin: 2px 0 0 0;
   font-size: 1.15rem;

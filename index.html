@@ -42,7 +42,7 @@
 
     <!-- Setup inicial em 1 clique -->
     <div id="sync-setup-box">
-      <p class="sync-hint">Gere um link criptografado de ponta a ponta para o seu pai acompanhar as estatísticas ao vivo.</p>
+      <p class="sync-hint">Gere um link criptografado de ponta a ponta para familiares acompanharem as estatísticas ao vivo.</p>
       <button id="btn-create-room" class="btn-primary-full" type="button">Ativar Compartilhamento e Gerar Link</button>
     </div>
 
@@ -50,12 +50,12 @@
     <div id="sync-active-primary" class="hidden">
       <p class="sync-status-text" id="sync-last-push">Aguardando alterações...</p>
       <div class="sync-actions-row">
-        <button id="btn-copy-invite" class="btn-secondary-flex" type="button">📋 Copiar Link para Pai</button>
+        <button id="btn-copy-invite" class="btn-secondary-flex" type="button">📋 Copiar Link ao Vivo</button>
         <button id="btn-revoke-room" class="btn-danger-outline" type="button">Encerrar Sala</button>
       </div>
     </div>
 
-    <!-- Sala conectada (Receptor / Pai) -->
+    <!-- Sala conectada (Receptor) -->
     <div id="sync-active-viewer" class="hidden">
       <p class="sync-status-text" id="sync-last-pull">Conectado em modo leitura.</p>
       <div class="sync-actions-row">
@@ -65,7 +65,7 @@
     </div>
   </div>
 
-  <!-- Banner de Modo Leitura (Visível apenas no celular do pai) -->
+  <!-- Banner de Modo Leitura -->
   <div class="viewer-banner hidden" id="viewer-banner">
     <span>👀 <strong>Modo Acompanhamento ao Vivo</strong></span>
     <span id="viewer-sync-time" class="viewer-time">Sincronizando...</span>
@@ -75,6 +75,9 @@
   <div id="editor-controls">
     <!-- Configuração da Partida -->
     <div class="card">
+      <label for="athlete-name">Atleta:</label>
+      <input type="text" id="athlete-name" placeholder="Ex: Lucas">
+
       <label for="opponent">Adversário:</label>
       <input type="text" id="opponent" placeholder="Ex: Capitol">
 
@@ -173,6 +176,7 @@
   <div class="card">
     <div class="boxscore-header">
       <span class="boxscore-badge">RESUMO DO JOGO</span>
+      <div id="summary-athlete-name" class="boxscore-athlete hidden"></div>
       <h2 id="summary-match-title" class="boxscore-title">Trouville x Adversário</h2>
     </div>
 
