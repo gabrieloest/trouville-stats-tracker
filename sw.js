@@ -1,9 +1,11 @@
-const CACHE_NAME = 'trouville-stats-cache-v1';
+const CACHE_NAME = 'trouville-stats-cache-v2';
 const REPO_PATH = '/trouville-stats-tracker';
 
 const ASSETS_TO_CACHE = [
   `${REPO_PATH}/`,
   `${REPO_PATH}/index.html`,
+  `${REPO_PATH}/styles.css`,
+  `${REPO_PATH}/app.js`,
   `${REPO_PATH}/manifest.json`,
   `${REPO_PATH}/sw.js`
 ];
@@ -18,7 +20,7 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Ativação: remove caches antigos se houver atualização de versão
+// Ativação: remove caches antigos (como a v1)
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
