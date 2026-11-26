@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Trouville Stats">
 
-  <!-- Manifesto e Ícones (PNG para iOS/Android + SVG fallback) -->
+  <!-- Manifesto e Ícones -->
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -27,107 +27,149 @@
   <header class="app-header">
     <h1>🏀 Trouville Stats</h1>
     <div class="header-actions">
+      <button id="btn-sync-toggle" class="btn-sync" type="button" title="Sincronização ao vivo">🔗 Sync</button>
       <button id="btn-install" class="btn-install" type="button">📲 Instalar</button>
       <button id="btn-reset" class="btn-reset" type="button">Zerar</button>
     </div>
   </header>
 
-  <!-- Configuração da Partida -->
-  <div class="card">
-    <label for="opponent">Adversário:</label>
-    <input type="text" id="opponent" placeholder="Ex: Capitol">
-
-    <label for="location">Mando de Jogo:</label>
-    <select id="location">
-      <option value="home">Casa (Trouville x Adversário)</option>
-      <option value="away">Fora (Adversário x Trouville)</option>
-    </select>
-  </div>
-
-  <!-- Seleção dos Tempos Jogados -->
-  <div class="card">
-    <label>Quais tempos ele jogou? (7 min cada)</label>
-    <div class="time-checkboxes">
-      <label class="time-checkbox-btn checked" id="lbl-t1">
-        <input type="checkbox" id="chk-1" data-quarter="1" checked> Tempo 1
-      </label>
-      <label class="time-checkbox-btn checked" id="lbl-t2">
-        <input type="checkbox" id="chk-2" data-quarter="2" checked> Tempo 2
-      </label>
-      <label class="time-checkbox-btn checked" id="lbl-t3">
-        <input type="checkbox" id="chk-3" data-quarter="3" checked> Tempo 3
-      </label>
-      <label class="time-checkbox-btn" id="lbl-t4">
-        <input type="checkbox" id="chk-4" data-quarter="4"> Tempo 4
-      </label>
-      <label class="time-checkbox-btn" id="lbl-t5">
-        <input type="checkbox" id="chk-5" data-quarter="5"> Tempo 5
-      </label>
-      <label class="time-checkbox-btn" id="lbl-t6">
-        <input type="checkbox" id="chk-6" data-quarter="6"> Tempo 6
-      </label>
+  <!-- Painel de Sincronização Zero-Knowledge (Expansível) -->
+  <div class="card sync-panel hidden" id="sync-panel">
+    <div class="sync-header">
+      <strong>🔒 Compartilhar ao Vivo (Criptografado)</strong>
+      <span id="sync-badge" class="sync-badge offline">Desconectado</span>
     </div>
-  </div>
 
-  <!-- Seleção do Tempo Ativo para Edição -->
-  <div class="card" id="card-tab-selector">
-    <label>Preencher estatísticas do tempo:</label>
-    <div class="quarter-selector" id="quarter-tabs"></div>
-  </div>
+    <!-- Setup inicial em 1 clique -->
+    <div id="sync-setup-box">
+      <p class="sync-hint">Gere um link criptografado de ponta a ponta para o seu pai acompanhar as estatísticas ao vivo.</p>
+      <button id="btn-create-room" class="btn-primary-full" type="button">Ativar Compartilhamento e Gerar Link</button>
+    </div>
 
-  <!-- Painel de Contador -->
-  <div class="card" id="card-stats-panel">
-    <h3 id="current-quarter-title" class="panel-title">Estatísticas - Jogo 1</h3>
-    
-    <div id="stats-controls-body">
-      <div class="stat-row">
-        <span class="stat-label">Pontos (pts)</span>
-        <div class="stat-controls">
-          <button class="btn-counter btn-sub" type="button" data-stat="pts" data-delta="-1">-</button>
-          <span class="stat-value" id="pts-val">0</span>
-          <button class="btn-counter btn-add" type="button" data-stat="pts" data-delta="1">+</button>
-        </div>
+    <!-- Sala conectada (Emissor) -->
+    <div id="sync-active-primary" class="hidden">
+      <p class="sync-status-text" id="sync-last-push">Aguardando alterações...</p>
+      <div class="sync-actions-row">
+        <button id="btn-copy-invite" class="btn-secondary-flex" type="button">📋 Copiar Link para Pai</button>
+        <button id="btn-revoke-room" class="btn-danger-outline" type="button">Encerrar Sala</button>
       </div>
+    </div>
 
-      <div class="stat-row">
-        <span class="stat-label">Rebotes (Rb)</span>
-        <div class="stat-controls">
-          <button class="btn-counter btn-sub" type="button" data-stat="rb" data-delta="-1">-</button>
-          <span class="stat-value" id="rb-val">0</span>
-          <button class="btn-counter btn-add" type="button" data-stat="rb" data-delta="1">+</button>
-        </div>
-      </div>
-
-      <div class="stat-row">
-        <span class="stat-label">Assistências (ass)</span>
-        <div class="stat-controls">
-          <button class="btn-counter btn-sub" type="button" data-stat="ass" data-delta="-1">-</button>
-          <span class="stat-value" id="ass-val">0</span>
-          <button class="btn-counter btn-add" type="button" data-stat="ass" data-delta="1">+</button>
-        </div>
-      </div>
-
-      <div class="stat-row">
-        <span class="stat-label">Roubos (roubos)</span>
-        <div class="stat-controls">
-          <button class="btn-counter btn-sub" type="button" data-stat="roubos" data-delta="-1">-</button>
-          <span class="stat-value" id="roubos-val">0</span>
-          <button class="btn-counter btn-add" type="button" data-stat="roubos" data-delta="1">+</button>
-        </div>
-      </div>
-
-      <div class="stat-row">
-        <span class="stat-label">Tocos (tocos)</span>
-        <div class="stat-controls">
-          <button class="btn-counter btn-sub" type="button" data-stat="tocos" data-delta="-1">-</button>
-          <span class="stat-value" id="tocos-val">0</span>
-          <button class="btn-counter btn-add" type="button" data-stat="tocos" data-delta="1">+</button>
-        </div>
+    <!-- Sala conectada (Receptor / Pai) -->
+    <div id="sync-active-viewer" class="hidden">
+      <p class="sync-status-text" id="sync-last-pull">Conectado em modo leitura.</p>
+      <div class="sync-actions-row">
+        <button id="btn-force-pull" class="btn-secondary-flex" type="button">🔄 Atualizar Agora</button>
+        <button id="btn-leave-room" class="btn-danger-outline" type="button">Sair</button>
       </div>
     </div>
   </div>
 
-  <!-- Gerador de Texto e Cópia -->
+  <!-- Banner de Modo Leitura (Visível apenas no celular do pai) -->
+  <div class="viewer-banner hidden" id="viewer-banner">
+    <span>👀 <strong>Modo Acompanhamento ao Vivo</strong></span>
+    <span id="viewer-sync-time" class="viewer-time">Sincronizando...</span>
+  </div>
+
+  <!-- Controles de Edição (Ocultos automaticamente no modo acompanhamento) -->
+  <div id="editor-controls">
+    <!-- Configuração da Partida -->
+    <div class="card">
+      <label for="opponent">Adversário:</label>
+      <input type="text" id="opponent" placeholder="Ex: Capitol">
+
+      <label for="location">Mando de Jogo:</label>
+      <select id="location">
+        <option value="home">Casa (Trouville x Adversário)</option>
+        <option value="away">Fora (Adversário x Trouville)</option>
+      </select>
+    </div>
+
+    <!-- Seleção dos Tempos Jogados -->
+    <div class="card">
+      <label>Quais tempos ele jogou? (7 min cada)</label>
+      <div class="time-checkboxes">
+        <label class="time-checkbox-btn checked" id="lbl-t1">
+          <input type="checkbox" id="chk-1" data-quarter="1" checked> Tempo 1
+        </label>
+        <label class="time-checkbox-btn checked" id="lbl-t2">
+          <input type="checkbox" id="chk-2" data-quarter="2" checked> Tempo 2
+        </label>
+        <label class="time-checkbox-btn checked" id="lbl-t3">
+          <input type="checkbox" id="chk-3" data-quarter="3" checked> Tempo 3
+        </label>
+        <label class="time-checkbox-btn" id="lbl-t4">
+          <input type="checkbox" id="chk-4" data-quarter="4"> Tempo 4
+        </label>
+        <label class="time-checkbox-btn" id="lbl-t5">
+          <input type="checkbox" id="chk-5" data-quarter="5"> Tempo 5
+        </label>
+        <label class="time-checkbox-btn" id="lbl-t6">
+          <input type="checkbox" id="chk-6" data-quarter="6"> Tempo 6
+        </label>
+      </div>
+    </div>
+
+    <!-- Seleção do Tempo Ativo para Edição -->
+    <div class="card" id="card-tab-selector">
+      <label>Preencher estatísticas do tempo:</label>
+      <div class="quarter-selector" id="quarter-tabs"></div>
+    </div>
+
+    <!-- Painel de Contador -->
+    <div class="card" id="card-stats-panel">
+      <h3 id="current-quarter-title" class="panel-title">Estatísticas - Jogo 1</h3>
+      
+      <div id="stats-controls-body">
+        <div class="stat-row">
+          <span class="stat-label">Pontos (pts)</span>
+          <div class="stat-controls">
+            <button class="btn-counter btn-sub" type="button" data-stat="pts" data-delta="-1">-</button>
+            <span class="stat-value" id="pts-val">0</span>
+            <button class="btn-counter btn-add" type="button" data-stat="pts" data-delta="1">+</button>
+          </div>
+        </div>
+
+        <div class="stat-row">
+          <span class="stat-label">Rebotes (Rb)</span>
+          <div class="stat-controls">
+            <button class="btn-counter btn-sub" type="button" data-stat="rb" data-delta="-1">-</button>
+            <span class="stat-value" id="rb-val">0</span>
+            <button class="btn-counter btn-add" type="button" data-stat="rb" data-delta="1">+</button>
+          </div>
+        </div>
+
+        <div class="stat-row">
+          <span class="stat-label">Assistências (ass)</span>
+          <div class="stat-controls">
+            <button class="btn-counter btn-sub" type="button" data-stat="ass" data-delta="-1">-</button>
+            <span class="stat-value" id="ass-val">0</span>
+            <button class="btn-counter btn-add" type="button" data-stat="ass" data-delta="1">+</button>
+          </div>
+        </div>
+
+        <div class="stat-row">
+          <span class="stat-label">Roubos (roubos)</span>
+          <div class="stat-controls">
+            <button class="btn-counter btn-sub" type="button" data-stat="roubos" data-delta="-1">-</button>
+            <span class="stat-value" id="roubos-val">0</span>
+            <button class="btn-counter btn-add" type="button" data-stat="roubos" data-delta="1">+</button>
+          </div>
+        </div>
+
+        <div class="stat-row">
+          <span class="stat-label">Tocos (tocos)</span>
+          <div class="stat-controls">
+            <button class="btn-counter btn-sub" type="button" data-stat="tocos" data-delta="-1">-</button>
+            <span class="stat-value" id="tocos-val">0</span>
+            <button class="btn-counter btn-add" type="button" data-stat="tocos" data-delta="1">+</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resumo da Partida e Cópia para WhatsApp -->
   <div class="card">
     <button id="btn-whatsapp" class="btn-whatsapp" type="button">Copiar para WhatsApp</button>
     <div class="preview" id="preview-text"></div>
@@ -135,6 +177,7 @@
 </div>
 
 <!-- Scripts -->
+<script src="e2ee-sync.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

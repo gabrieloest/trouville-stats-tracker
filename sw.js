@@ -1,10 +1,11 @@
-const CACHE_NAME = 'trouville-stats-cache-v3';
+const CACHE_NAME = 'trouville-stats-cache-v4';
 const REPO_PATH = '/trouville-stats-tracker';
 
 const ASSETS_TO_CACHE = [
   `${REPO_PATH}/`,
   `${REPO_PATH}/index.html`,
   `${REPO_PATH}/styles.css`,
+  `${REPO_PATH}/e2ee-sync.js`,
   `${REPO_PATH}/app.js`,
   `${REPO_PATH}/manifest.json`,
   `${REPO_PATH}/icon-192.png`,
@@ -38,9 +39,15 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Interceptação de requisições: Cache-first com fallback para rede
+// Interceptação de requisições: Cache-first apenas para assets locais
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+
+  const url = new URL(event.request.url);
+  // Nunca cacheia chamadas ao Firebase Realtime Database
+  if (url.hostname.endsWith('firebaseio.com') || url.hostname.endsWith('firebasedatabase.app')) {
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
