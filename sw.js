@@ -1,4 +1,4 @@
-const CACHE_NAME = 'trouville-stats-cache-v4';
+const CACHE_NAME = 'trouville-stats-cache-v6';
 const REPO_PATH = '/trouville-stats-tracker';
 
 const ASSETS_TO_CACHE = [
@@ -44,7 +44,6 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   const url = new URL(event.request.url);
-  // Nunca cacheia chamadas ao Firebase Realtime Database
   if (url.hostname.endsWith('firebaseio.com') || url.hostname.endsWith('firebasedatabase.app')) {
     return;
   }

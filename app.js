@@ -546,11 +546,19 @@ function bindEvents() {
   });
 }
 
-// --- Service Worker ---
+// --- Service Worker com Atualização Automática ---
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
       .catch(err => console.error('Falha ao registrar Service Worker:', err));
+  });
+
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!refreshing) {
+      refreshing = true;
+      window.location.reload();
+    }
   });
 }
 
