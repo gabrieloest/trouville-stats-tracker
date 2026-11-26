@@ -17,6 +17,7 @@ const getDefaultState = () => ({
 
 let state = loadState();
 let deferredPrompt = null;
+let wakeLock = null;
 
 // --- Persistência ---
 function loadState() {
@@ -36,6 +37,29 @@ function saveState() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch (e) {
     console.warn('Erro ao salvar no localStorage:', e);
+  }
+}
+
+// --- Wake Lock (Mantém a tela acesa durante o jogo) ---
+async function requestWakeLock() {
+  if (!('wakeLock' in navigator)) return;
+  try {
+    wakeLock = await navigator.wakeLock.request('screen');
+  } catch (err) {
+    console.warn('Wake Lock não pôde ser ativado:', err);
+  }
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    requestWakeLock();
+  }
+});
+
+// --- Feedback Tátil ---
+function triggerHapticFeedback() {
+  if ('vibrate' in navigator) {
+    navigator.vibrate(25);
   }
 }
 
@@ -101,7 +125,7 @@ function generateText() {
   const opponent = state.opponent.trim() || 'Adversário';
   const isHome = state.location === 'home';
 
-  const header = isHome ? `Trouville x  ${opponent}` : `${opponent} x  Trouville`;
+  const header = isHome ? `Trouville x ${opponent}` : `${opponent} x Trouville`;
   let text = `${header}\n`;
 
   const activeQuarters = Object.keys(state.playedQuarters).filter(q => state.playedQuarters[q]);
@@ -110,11 +134,22 @@ function generateText() {
     return `${header}\n(Nenhum tempo jogado selecionado)`;
   }
 
+  const totals = { pts: 0, rb: 0, ass: 0, roubos: 0, tocos: 0 };
+
   activeQuarters.forEach(q => {
     const data = state.stats[q];
+    totals.pts += data.pts;
+    totals.rb += data.rb;
+    totals.ass += data.ass;
+    totals.roubos += data.roubos;
+    totals.tocos += data.tocos;
+
     text += `- Jogo ${q}\n`;
     text += ` ${data.pts} pts, ${data.rb} Rb, ${data.ass} ass, ${data.roubos} roubos, ${data.tocos} tocos\n`;
   });
+
+  text += `\n- Total\n`;
+  text += ` ${totals.pts} pts, ${totals.rb} Rb, ${totals.ass} ass, ${totals.roubos} roubos, ${totals.tocos} tocos`;
 
   return text.trim();
 }
@@ -163,6 +198,7 @@ function changeStat(statKey, delta) {
   const q = state.currentActiveQuarter;
   if (state.stats[q][statKey] + delta >= 0) {
     state.stats[q][statKey] += delta;
+    triggerHapticFeedback();
     saveState();
     renderCurrentQuarterStats();
     updatePreview();
@@ -248,4 +284,5 @@ if ('serviceWorker' in navigator) {
 document.addEventListener('DOMContentLoaded', () => {
   bindEvents();
   syncUIWithState();
+  requestWakeLock();
 });
