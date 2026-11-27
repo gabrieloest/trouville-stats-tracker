@@ -24,7 +24,7 @@ const E2EESync = (() => {
     return `${baseUrl}#pair=${encodeURIComponent(payload)}`;
   }
 
-  // 3. Lê o convite ao abrir o app no segundo dispositivo
+  // 3. Lê o convite ao abrir o app no segundo dispositivo (apenas 1x por convite)
   function consumeInviteFromHash(prefix = 'TRV') {
     const hash = window.location.hash || '';
     if (!hash.startsWith('#pair=')) return null;
@@ -38,11 +38,20 @@ const E2EESync = (() => {
       // Remove o segredo da URL imediatamente após ler
       history.replaceState(null, '', window.location.pathname + window.location.search);
 
+      const pairCode = `${prefix}-${match[1]}-${match[2]}`;
+      const consumedKey = 'trouville_last_consumed_pair';
+
+      // Evita reativar um convite antigo caso o atalho PWA tenha salvo o #hash na instalação
+      if (localStorage.getItem(consumedKey) === pairCode) {
+        return null;
+      }
+      localStorage.setItem(consumedKey, pairCode);
+
       return {
         firebaseUrl: decoded.fb.trim().replace(/\/+$/, ''),
         roomId: match[1],
         secret: match[2],
-        pairCode: `${prefix}-${match[1]}-${match[2]}`
+        pairCode
       };
     } catch (e) {
       console.warn('Convite inválido na URL:', e);

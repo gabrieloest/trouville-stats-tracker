@@ -1,4 +1,4 @@
-const CACHE_NAME = 'trouville-stats-cache-v8';
+const CACHE_NAME = 'trouville-stats-cache-v9';
 const REPO_PATH = '/trouville-stats-tracker';
 
 const ASSETS_TO_CACHE = [
