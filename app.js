@@ -1,4 +1,5 @@
 const STORAGE_KEY = 'trouville_stats_v1';
+const HISTORY_STORAGE_KEY = 'trouville_history_v1';
 const SYNC_STORAGE_KEY = 'trouville_sync_config_v1';
 const FIREBASE_DB_URL = 'https://trouville-stats-tracker-default-rtdb.firebaseio.com';
 
@@ -19,7 +20,8 @@ const getDefaultState = (preservedAthleteName = '') => ({
 });
 
 let state = loadState();
-let syncConfig = loadSyncConfig(); // { role: 'primary'|'viewer', firebaseUrl, roomId, secret, pairCode }
+let matchHistory = loadHistory();
+let syncConfig = loadSyncConfig();
 let deferredPrompt = null;
 let wakeLock = null;
 let pushDebounceTimer = null;
@@ -48,6 +50,24 @@ function saveState() {
   }
 }
 
+function loadHistory() {
+  try {
+    const saved = localStorage.getItem(HISTORY_STORAGE_KEY);
+    return saved ? JSON.parse(saved) : [];
+  } catch (e) {
+    console.warn('Erro ao ler histórico:', e);
+    return [];
+  }
+}
+
+function saveHistory() {
+  try {
+    localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(matchHistory));
+  } catch (e) {
+    console.warn('Erro ao salvar histórico:', e);
+  }
+}
+
 function loadSyncConfig() {
   try {
     const saved = localStorage.getItem(SYNC_STORAGE_KEY);
@@ -67,7 +87,7 @@ function saveSyncConfig(cfg) {
   }
 }
 
-// --- Wake Lock (Mantém a tela acesa durante o jogo) ---
+// --- Wake Lock ---
 async function requestWakeLock() {
   if (!('wakeLock' in navigator)) return;
   try {
@@ -93,7 +113,7 @@ function triggerHapticFeedback() {
   }
 }
 
-// --- Sincronização E2EE (Zero-Knowledge) ---
+// --- Sincronização E2EE ---
 function buildSnapshot() {
   return {
     athleteName: state.athleteName,
@@ -184,6 +204,8 @@ function updateSyncUI() {
   const editorControls = document.getElementById('editor-controls');
   const viewerBanner = document.getElementById('viewer-banner');
   const resetBtn = document.getElementById('btn-reset');
+  const saveHistBtn = document.getElementById('btn-save-history');
+  const historyCard = document.getElementById('history-card');
 
   setupBox.classList.add('hidden');
   primaryBox.classList.add('hidden');
@@ -198,6 +220,8 @@ function updateSyncUI() {
     editorControls.classList.remove('hidden');
     viewerBanner.classList.add('hidden');
     resetBtn.classList.remove('hidden');
+    saveHistBtn.classList.remove('hidden');
+    historyCard.classList.remove('hidden');
     return;
   }
 
@@ -211,6 +235,8 @@ function updateSyncUI() {
     editorControls.classList.remove('hidden');
     viewerBanner.classList.add('hidden');
     resetBtn.classList.remove('hidden');
+    saveHistBtn.classList.remove('hidden');
+    historyCard.classList.remove('hidden');
   } else if (syncConfig.role === 'viewer') {
     syncBtn.innerText = '👀 Conectado';
     badge.innerText = 'Recebendo';
@@ -218,23 +244,25 @@ function updateSyncUI() {
     editorControls.classList.add('hidden');
     viewerBanner.classList.remove('hidden');
     resetBtn.classList.add('hidden');
+    saveHistBtn.classList.add('hidden');
+    historyCard.classList.add('hidden');
   }
 }
 
 // --- Cálculo e Renderização ---
-function getMatchHeader() {
-  const opponent = state.opponent.trim() || 'Adversário';
-  return state.location === 'home'
+function buildMatchHeader(opponentRaw, location) {
+  const opponent = (opponentRaw || '').trim() || 'Adversário';
+  return location === 'home'
     ? `Trouville x ${opponent}`
     : `${opponent} x Trouville`;
 }
 
-function getSummaryData() {
-  const activeQuarters = Object.keys(state.playedQuarters).filter(q => state.playedQuarters[q]);
+function getSummaryData(targetState = state) {
+  const activeQuarters = Object.keys(targetState.playedQuarters).filter(q => targetState.playedQuarters[q]);
   const totals = { pts: 0, rb: 0, ass: 0, roubos: 0, tocos: 0 };
 
   const rows = activeQuarters.map(q => {
-    const data = state.stats[q];
+    const data = targetState.stats[q];
     totals.pts += data.pts;
     totals.rb += data.rb;
     totals.ass += data.ass;
@@ -244,8 +272,8 @@ function getSummaryData() {
   });
 
   return {
-    athleteName: (state.athleteName || '').trim(),
-    header: getMatchHeader(),
+    athleteName: (targetState.athleteName || '').trim(),
+    header: buildMatchHeader(targetState.opponent, targetState.location),
     rows,
     totals
   };
@@ -267,6 +295,7 @@ function syncUIWithState() {
   renderTabs();
   renderCurrentQuarterStats();
   updateSummaryView();
+  renderHistory();
 }
 
 function renderTabs() {
@@ -375,9 +404,10 @@ function updateSummaryView() {
   wrapper.appendChild(table);
 }
 
-function generateWhatsAppText() {
-  const { athleteName, header, rows, totals } = getSummaryData();
-  const titleLine = athleteName ? `${athleteName} — ${header}` : header;
+function generateWhatsAppText(targetState = state, dateStr = null) {
+  const { athleteName, header, rows, totals } = getSummaryData(targetState);
+  const titleBase = athleteName ? `${athleteName} — ${header}` : header;
+  const titleLine = dateStr ? `${titleBase} (${dateStr})` : titleBase;
   let text = `${titleLine}\n`;
 
   if (rows.length === 0) {
@@ -395,6 +425,129 @@ function generateWhatsAppText() {
   return text.trim();
 }
 
+// --- Histórico de Partidas ---
+function saveCurrentMatchToHistory() {
+  const { athleteName, header, rows, totals } = getSummaryData();
+
+  if (rows.length === 0) {
+    alert('Selecione pelo menos um tempo jogado antes de salvar no histórico.');
+    return;
+  }
+
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+  const record = {
+    id: Date.now().toString(),
+    savedAt: now.toISOString(),
+    dateStr,
+    athleteName,
+    opponent: state.opponent.trim() || 'Adversário',
+    location: state.location,
+    header,
+    playedQuarters: JSON.parse(JSON.stringify(state.playedQuarters)),
+    stats: JSON.parse(JSON.stringify(state.stats)),
+    totals
+  };
+
+  matchHistory.unshift(record);
+  saveHistory();
+  renderHistory();
+
+  const btn = document.getElementById('btn-save-history');
+  const originalText = btn.innerText;
+  btn.innerText = '✅ Partida Salva no Histórico!';
+  setTimeout(() => { btn.innerText = originalText; }, 2200);
+}
+
+function deleteHistoryItem(id) {
+  if (!confirm('Deseja excluir esta partida do histórico?')) return;
+  matchHistory = matchHistory.filter(item => item.id !== id);
+  saveHistory();
+  renderHistory();
+}
+
+function renderHistory() {
+  const listEl = document.getElementById('history-list');
+  const avgBox = document.getElementById('season-averages-box');
+  const countBadge = document.getElementById('history-count-badge');
+  const subtitleEl = document.getElementById('history-subtitle');
+
+  const filterName = (state.athleteName || '').trim().toLowerCase();
+  const filtered = filterName
+    ? matchHistory.filter(m => (m.athleteName || '').trim().toLowerCase() === filterName)
+    : matchHistory;
+
+  const gamesCount = filtered.length;
+  countBadge.innerText = `${gamesCount} ${gamesCount === 1 ? 'jogo' : 'jogos'}`;
+  subtitleEl.innerText = filterName
+    ? `Médias de ${state.athleteName.trim()}`
+    : 'Médias gerais por partida';
+
+  if (gamesCount === 0) {
+    avgBox.classList.add('hidden');
+    listEl.innerHTML = `<p class="boxscore-empty">${
+      filterName
+        ? `Nenhuma partida salva para ${state.athleteName.trim()} ainda.`
+        : 'Nenhuma partida salva no histórico ainda.'
+    }</p>`;
+    return;
+  }
+
+  // Calcula médias
+  const sum = filtered.reduce((acc, m) => {
+    acc.pts += m.totals.pts;
+    acc.rb += m.totals.rb;
+    acc.ass += m.totals.ass;
+    acc.roubos += m.totals.roubos;
+    acc.tocos += m.totals.tocos;
+    return acc;
+  }, { pts: 0, rb: 0, ass: 0, roubos: 0, tocos: 0 });
+
+  document.getElementById('avg-pts').innerText = (sum.pts / gamesCount).toFixed(1);
+  document.getElementById('avg-rb').innerText = (sum.rb / gamesCount).toFixed(1);
+  document.getElementById('avg-ass').innerText = (sum.ass / gamesCount).toFixed(1);
+  document.getElementById('avg-roubos').innerText = (sum.roubos / gamesCount).toFixed(1);
+  document.getElementById('avg-tocos').innerText = (sum.tocos / gamesCount).toFixed(1);
+  avgBox.classList.remove('hidden');
+
+  listEl.innerHTML = '';
+  filtered.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'history-item';
+
+    const athleteBadge = (!filterName && item.athleteName)
+      ? `<span class="history-athlete-tag">🏀 ${item.athleteName}</span>`
+      : '';
+
+    card.innerHTML = `
+      <div class="history-item-top">
+        <span class="history-match">${item.header}</span>
+        <span class="history-date">${item.dateStr}</span>
+      </div>
+      ${athleteBadge}
+      <div class="history-stats-line">
+        ${item.totals.pts} pts • ${item.totals.rb} Rb • ${item.totals.ass} ass • ${item.totals.roubos} roubos • ${item.totals.tocos} tocos
+      </div>
+      <div class="history-item-actions">
+        <button type="button" class="btn-hist-copy">📋 Copiar</button>
+        <button type="button" class="btn-hist-del" title="Excluir">🗑️</button>
+      </div>
+    `;
+
+    card.querySelector('.btn-hist-copy').addEventListener('click', (e) => {
+      const text = generateWhatsAppText(item, item.dateStr);
+      copyToClipboard(text, e.currentTarget, '✅ Copiado!');
+    });
+
+    card.querySelector('.btn-hist-del').addEventListener('click', () => {
+      deleteHistoryItem(item.id);
+    });
+
+    listEl.appendChild(card);
+  });
+}
+
 // --- Ações e Eventos ---
 function handleInputChange() {
   state.athleteName = document.getElementById('athlete-name').value;
@@ -402,6 +555,7 @@ function handleInputChange() {
   state.location = document.getElementById('location').value;
   saveState();
   updateSummaryView();
+  renderHistory();
 }
 
 function toggleQuarterPlayed(q) {
@@ -454,7 +608,7 @@ function copyToClipboard(text, btnElement, successLabel) {
 }
 
 function resetMatch() {
-  if (confirm('Deseja zerar as estatísticas da partida atual? (O nome do atleta será mantido)')) {
+  if (confirm('Deseja zerar as estatísticas da partida atual? (O nome do atleta e o histórico serão mantidos)')) {
     const currentAthlete = state.athleteName;
     state = getDefaultState(currentAthlete);
     saveState();
@@ -468,6 +622,7 @@ function bindEvents() {
   document.getElementById('opponent').addEventListener('input', handleInputChange);
   document.getElementById('location').addEventListener('change', handleInputChange);
   document.getElementById('btn-reset').addEventListener('click', resetMatch);
+  document.getElementById('btn-save-history').addEventListener('click', saveCurrentMatchToHistory);
 
   document.getElementById('btn-whatsapp').addEventListener('click', (e) => {
     copyToClipboard(generateWhatsAppText(), e.currentTarget, '✅ Copiado para o WhatsApp!');
@@ -488,7 +643,7 @@ function bindEvents() {
     });
   });
 
-  // Eventos do Painel Sync (1 clique)
+  // Eventos do Painel Sync
   document.getElementById('btn-sync-toggle').addEventListener('click', () => {
     document.getElementById('sync-panel').classList.toggle('hidden');
   });

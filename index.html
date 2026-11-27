@@ -40,13 +40,11 @@
       <span id="sync-badge" class="sync-badge offline">Desconectado</span>
     </div>
 
-    <!-- Setup inicial em 1 clique -->
     <div id="sync-setup-box">
       <p class="sync-hint">Gere um link criptografado de ponta a ponta para familiares acompanharem as estatísticas ao vivo.</p>
       <button id="btn-create-room" class="btn-primary-full" type="button">Ativar Compartilhamento e Gerar Link</button>
     </div>
 
-    <!-- Sala conectada (Emissor) -->
     <div id="sync-active-primary" class="hidden">
       <p class="sync-status-text" id="sync-last-push">Aguardando alterações...</p>
       <div class="sync-actions-row">
@@ -55,7 +53,6 @@
       </div>
     </div>
 
-    <!-- Sala conectada (Receptor) -->
     <div id="sync-active-viewer" class="hidden">
       <p class="sync-status-text" id="sync-last-pull">Conectado em modo leitura.</p>
       <div class="sync-actions-row">
@@ -71,7 +68,7 @@
     <span id="viewer-sync-time" class="viewer-time">Sincronizando...</span>
   </div>
 
-  <!-- Controles de Edição (Ocultos automaticamente no modo acompanhamento) -->
+  <!-- Controles de Edição -->
   <div id="editor-controls">
     <!-- Configuração da Partida -->
     <div class="card">
@@ -172,7 +169,7 @@
     </div>
   </div>
 
-  <!-- Resumo Visual da Partida (Box Score) e Cópia para WhatsApp -->
+  <!-- Resumo Visual da Partida (Box Score) e Ações -->
   <div class="card">
     <div class="boxscore-header">
       <span class="boxscore-badge">RESUMO DO JOGO</span>
@@ -182,7 +179,48 @@
 
     <div id="summary-table-wrapper" class="boxscore-wrapper"></div>
 
-    <button id="btn-whatsapp" class="btn-whatsapp" type="button">Copiar para WhatsApp</button>
+    <div class="summary-actions">
+      <button id="btn-whatsapp" class="btn-whatsapp" type="button">Copiar para WhatsApp</button>
+      <button id="btn-save-history" class="btn-save-history" type="button">💾 Salvar Partida no Histórico</button>
+    </div>
+  </div>
+
+  <!-- Histórico de Partidas e Médias -->
+  <div class="card" id="history-card">
+    <div class="history-header">
+      <div>
+        <h3 class="panel-title" style="margin-bottom: 2px;">📚 Histórico de Partidas</h3>
+        <span id="history-subtitle" class="history-subtitle">Médias por partida</span>
+      </div>
+      <span id="history-count-badge" class="boxscore-badge">0 jogos</span>
+    </div>
+
+    <!-- Médias da Temporada -->
+    <div id="season-averages-box" class="averages-grid hidden">
+      <div class="avg-item">
+        <span class="avg-val" id="avg-pts">0.0</span>
+        <span class="avg-lbl">PTS</span>
+      </div>
+      <div class="avg-item">
+        <span class="avg-val" id="avg-rb">0.0</span>
+        <span class="avg-lbl">REB</span>
+      </div>
+      <div class="avg-item">
+        <span class="avg-val" id="avg-ass">0.0</span>
+        <span class="avg-lbl">ASS</span>
+      </div>
+      <div class="avg-item">
+        <span class="avg-val" id="avg-roubos">0.0</span>
+        <span class="avg-lbl">ROU</span>
+      </div>
+      <div class="avg-item">
+        <span class="avg-val" id="avg-tocos">0.0</span>
+        <span class="avg-lbl">TOC</span>
+      </div>
+    </div>
+
+    <!-- Lista de Partidas Salvas -->
+    <div id="history-list" class="history-list"></div>
   </div>
 </div>
 

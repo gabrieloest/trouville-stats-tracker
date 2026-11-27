@@ -486,3 +486,149 @@ select:last-child {
 .btn-whatsapp:active {
   transform: scale(0.98);
 }
+
+/* Botões de ação do Resumo e Histórico */
+.summary-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btn-save-history {
+  width: 100%;
+  background-color: #fdf2f2;
+  color: var(--flag-red);
+  border: 1.5px solid var(--rosy-copper);
+  font-size: 0.94rem;
+  font-weight: 700;
+  padding: 11px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.15s, transform 0.08s;
+}
+
+.btn-save-history:active {
+  transform: scale(0.98);
+  background-color: rgba(234, 148, 142, 0.25);
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.history-subtitle {
+  font-size: 0.78rem;
+  color: var(--dusty-rose);
+  font-weight: 600;
+}
+
+.averages-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  background: #fdf2f2;
+  border: 1px solid #f0dada;
+  border-radius: 10px;
+  padding: 10px 6px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.avg-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.avg-val {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--flag-red);
+  font-variant-numeric: tabular-nums;
+}
+
+.avg-lbl {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--blushed-brick);
+  margin-top: 2px;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.history-item {
+  border: 1px solid #f0dada;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #fdfafa;
+}
+
+.history-item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.history-match {
+  font-weight: 800;
+  font-size: 0.92rem;
+  color: var(--text);
+}
+
+.history-date {
+  font-size: 0.74rem;
+  color: var(--dusty-rose);
+  font-weight: 600;
+}
+
+.history-athlete-tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--flag-red);
+  background: rgba(234, 148, 142, 0.22);
+  padding: 1px 7px;
+  border-radius: 8px;
+  margin-bottom: 5px;
+}
+
+.history-stats-line {
+  font-size: 0.82rem;
+  color: #4a3535;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.history-item-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.btn-hist-copy {
+  background: #eafaf0;
+  color: #157a3c;
+  border: 1px solid #8ce0aa;
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-hist-del {
+  background: transparent;
+  color: var(--dusty-rose);
+  border: 1px solid #e4cece;
+  border-radius: 8px;
+  padding: 5px 9px;
+  font-size: 0.76rem;
+  cursor: pointer;
+}
